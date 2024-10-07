@@ -1,0 +1,35 @@
+def calcular_porcentagem_vitorias_derrotas(carta, timestamp_inicial, timestamp_final):
+    client = connect_database()
+    db = client['clashRoyale']
+    partidas_collection = db['battles']  # Altere para o nome correto da coleção
+
+    vitorias = 0
+    derrotas = 0
+    
+    partidas = partidas_collection.find({
+        'timestamp': {
+            '$gte': timestamp_inicial,
+            '$lte': timestamp_final
+        },
+        'cartas': carta
+    })
+
+    for partida in partidas:
+        if partida['resultado'] == 'vitoria':
+            vitorias += 1
+        elif partida['resultado'] == 'derrota':
+            derrotas += 1
+
+    total_partidas = vitorias + derrotas
+    if total_partidas > 0:
+        porcentagem_vitorias = (vitorias / total_partidas) * 100
+        porcentagem_derrotas = (derrotas / total_partidas) * 100
+    else:
+        porcentagem_vitorias = 0
+        porcentagem_derrotas = 0
+
+    return {
+        'porcentagem_vitorias': porcentagem_vitorias,
+        'porcentagem_derrotas': porcentagem_derrotas,
+        'total_partidas': total_partidas
+    }
