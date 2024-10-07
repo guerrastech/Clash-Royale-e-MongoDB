@@ -1,27 +1,14 @@
 body {
   font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  margin: 0;
-  background-color: #f9f9f9;
 }
-
-h1{
-    text-align: center;
-}
-
 ul {
   list-style-type: none;
   padding: 0;
-  text-align: center;
 }
-
 li {
   margin: 10px 0;
 }
-
 .popup {
   display: none;
   position: fixed;
@@ -33,6 +20,21 @@ li {
   border: 1px solid #ccc;
   z-index: 1000;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.resultPopup {
+display: none;
+position: fixed;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+padding: 20px;
+background-color: white;
+border: 1px solid #ccc;
+z-index: 1000;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+max-height: 80vh; /* Altura máxima do popup */
+overflow-y: auto; /* Permite rolagem vertical */
+width: 90%; /* Largura do popup (opcional) */
 }
 
 .overlay {

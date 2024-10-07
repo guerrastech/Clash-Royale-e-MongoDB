@@ -7,7 +7,7 @@ db = client['clashRoyale']
 collection = db['battles']
 cards_collection = db['cards']  
 
-player_tag = 'GC99VQPLP'
+player_tag = 'QJRU92L'
 url = f'https://api.clashroyale.com/v1/players/%23{player_tag}/battlelog'
 
 headers = {
@@ -105,7 +105,6 @@ for battle in dados_batalha:
                 "deck": [card['name'] for card in dados_adversario['cards']]
             }
         },
-        "trophyChange": dados_adversario['trophyChange'],
         "leagueNumber": battle['leagueNumber'],
         "result": result  
     }

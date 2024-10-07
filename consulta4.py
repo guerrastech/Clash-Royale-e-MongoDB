@@ -1,57 +1,53 @@
+from pymongo import MongoClient
 from conexao_BD import connect_database
-from datetime import datetime
+
 
 client = connect_database()
 collection = client['clashRoyale']['battles']
 
-def contar_vitorias_com_carta(carta, percentual_trofeus, duracao_maxima, start_date, end_date):
-    start_timestamp = datetime.strptime(start_date, "%Y-%m-%d")
-    end_timestamp = datetime.strptime(end_date, "%Y-%m-%d")
-
+def calcular_vitorias_carta_especifica(carta, percentual_trofeus, duracao_maxima):
+    client = connect_database()
+    db = client['clashRoyale']
+    partidas_collection = db['battles']  # Nome da coleção de partidas
     
-    trofeus_limite = 1 - (percentual_trofeus / 100.0)
-
-    
-    batalhas = collection.find({
-        "battleTime": {
-            "$gte": start_timestamp,
-            "$lte": end_timestamp
+    # Filtro de vitórias envolvendo a carta X e outras condições
+    pipeline = [
+        {
+            '$match': {
+                'team.player.deck': carta,  # O vencedor usou a carta X
+                'battleDuration': {'$lt': duracao_maxima},  # Partida durou menos de 120 segundos
+                'team.opponent.leagueNumber': {'$gte': 2},  # Perdedor destruiu ao menos duas torres
+                '$expr': {
+                    # Verifica se o vencedor tem Z% menos troféus que o perdedor
+                    '$lt': [
+                        '$team.player.trofeus',
+                        {'$multiply': ['$team.opponent.trofeus', 1 - percentual_trofeus / 100]}
+                    ]
+                }
+            }
+        },
+        {
+            '$count': 'total_vitorias'  # Conta o número de vitórias que satisfazem os critérios
         }
-    })
+    ]
+    
+    # Executa a consulta agregada no MongoDB
+    resultado = list(partidas_collection.aggregate(pipeline))
+    
+    if resultado:
+        print(resultado)
+        return resultado[0]['total_vitorias']
+    else:
+        return 0  
 
-    total_vitorias = 0
+def testar_calcular_vitorias():
+    carta = "Valkyrie"  
+    percentual_trofeus = 10  
+    duracao_maxima = 120 
 
-    for battle in batalhas:
-       
-        battle_time = battle['battleTime']
-        duracao_batalha = (battle_time - start_timestamp).seconds / 60  
-        
-        if duracao_batalha < duracao_maxima:
-            dados_jogador = battle['team']['player']
-            dados_adversario = battle['team']['opponent']
-
-           
-            torres_derrubadas = dados_adversario['crowns'] 
-            trofeus_jogador = dados_jogador['startingTrophies']
-            trofeus_adversario = dados_adversario['startingTrophies']
-
-            
-            if (
-                trofeus_jogador * trofeus_limite < trofeus_adversario and
-                torres_derrubadas >= 2 and
-                carta in [card['name'] for card in dados_jogador['cards']]
-            ):
-                total_vitorias += 1
-
-    return total_vitorias
+    total_vitorias = calcular_vitorias_carta_especifica(carta, percentual_trofeus, duracao_maxima)
+    
+    print(f'Total de vitórias para a carta {carta}: {total_vitorias}')
 
 
-carta = "Barbarians"  
-percentual_trofeus = 20 
-duracao_maxima = 2  
-start_date = "2024-01-01"  
-end_date = "2024-12-31"  
-
-vitorias = contar_vitorias_com_carta(carta, percentual_trofeus, duracao_maxima, start_date, end_date)
-
-print(f"Total de vitórias envolvendo a carta {carta}: {vitorias}")
+testar_calcular_vitorias()

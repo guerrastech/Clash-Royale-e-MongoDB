@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from conexao_BD import connect_database
-from consulta1 import main
+from consulta1 import calcular_porcentagem_vitorias_derrotas
 from consulta2 import listar_decks_com_vitória
 from consulta3 import contar_derrotas_por_combo
-from consulta4 import contar_vitorias_com_carta
+from consulta4 import calcular_vitorias_carta_especifica
 from consulta5 import listar_combos_cartas
 from datetime import datetime
 
@@ -48,7 +48,7 @@ def estatisticas():
 
             return jsonify(decks_resultados)
 
-        # Verifica se uma carta específica foi enviada
+        #Verifica se uma carta específica foi enviada
         if 'carta' in request.form:
             carta = request.form['carta']
             data_inicio = request.form['data_inicio']
@@ -57,7 +57,7 @@ def estatisticas():
             timestamp_final = int(datetime.strptime(data_fim, '%Y-%m-%d').timestamp())
             
             # Chama a função para calcular a porcentagem de vitórias e derrotas
-            resultados = main(carta, timestamp_inicial, timestamp_final)
+            resultados = calcular_porcentagem_vitorias_derrotas(carta, timestamp_inicial, timestamp_final)
             return jsonify(resultados)  # Retorna os resultados em formato JSON
     
         if 'tamanho_combo' in request.form and 'percentual_vitorias' in request.form:
@@ -67,18 +67,19 @@ def estatisticas():
             data_fim = request.form['data_fim']
 
             combos_resultados = listar_combos_cartas(tamanho_combo, percentual_vitorias, data_inicio, data_fim)
+            combos_resultados = {str(key): value for key, value in combos_resultados.items()}
             return jsonify(combos_resultados)
 
-    if 'carta' in request.form and 'percentual_trofeus' in request.form:
-        carta = request.form['carta']
-        percentual_trofeus = float(request.form['percentual_trofeus'])
-        duracao_maxima = float(request.form['duracao_maxima'])  # em minutos
-        data_inicio = request.form['data_inicio']
-        data_fim = request.form['data_fim']
+        # if '1' in request.form and 'percentual_trofeus' in request.form:
+        #     carta = request.form['carta']
+        #     percentual_trofeus = float(request.form['percentual_trofeus'])
+        #     duracao_maxima = float(request.form['duracao_maxima'])  # em minutos
+        #     data_inicio = request.form['data_inicio']
+        #     data_fim = request.form['data_fim']
 
-        resultados = contar_vitorias_com_carta(carta, percentual_trofeus, duracao_maxima, data_inicio, data_fim)
-        return jsonify({'total_vitorias': resultados})
-    
+        #     resultados = calcular_vitorias_carta_especifica(carta, percentual_trofeus, duracao_maxima, data_inicio, data_fim)
+        #     return jsonify({'total_vitorias': resultados})
+
     
     
     
